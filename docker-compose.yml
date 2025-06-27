@@ -1,0 +1,26 @@
+services:
+  ursim:
+    image: universalrobots/ursim_e-series
+    container_name: ursim
+    ports:
+      - "51135:51135/udp" # Controller data
+      - "5901:5900" # VNC
+      - "6080:6080" # Web VNC (browser GUI)
+      - "6666:6666" 
+      - "29999:29999"
+      - "30001:30001" # Primary interface
+      - "30011:30011" # Primary interface
+      - "30002:30002" # Secondary interface (used by ur_rtde)
+      - "30012:30012" # Secondary interface (used by ur_rtde)
+      - "30003:30003" # Real-time interface
+      - "30013:30013" # Real-time interface
+      - "30004:30004" # RTDE interface
+      - "30020:30020"
+      - "50001:50001"
+      - "50002:50002"
+      - "50003:50003"
+      - "502:502"
+    volumes:
+      - ${HOME}/.ursim/urcaps:/urcaps
+      - ${HOME}/.ursim/programs:/ursim/programs
+      - /Users/hanqnero/Dev/SummerPractice:/workspace
