@@ -8,13 +8,14 @@ import controller
 import zarr_logger
 import camera
 
+
 class ControllerTeleop:
     def __init__(self, IP):
         print('Connecting to robot at', IP)
         self.rtde_c = rtde_control.RTDEControlInterface(IP)
         self.rtde_r = rtde_receive.RTDEReceiveInterface(IP)
 
-        self.velocityMultiplier = 0.1 # speed in meters per second with ful stick deflection
+        self.velocityMultiplier = 0.1  # speed in meters per second with ful stick deflection
         self.velocityChangePerTick = 0.0005
 
         self.controller = controller.ControllerHIDAdapter()
@@ -26,11 +27,11 @@ class ControllerTeleop:
         self.stageBtnFlag = False
         self.telemetryStage = 0
 
-        self.cameraManager = camera.CameraManager('recordings', target_fps=30, target_resolution=(640, 480))
+        self.cameraManager = camera.CameraManager(
+            'recordings', target_fps=30, target_resolution=(640, 480))
         self.recording_running = False
 
         print('init finished')
-
 
     def stop(self):
         self.rtde_c.stopL()
@@ -41,8 +42,8 @@ class ControllerTeleop:
         self.cameraManager.stop_recording()
 
     def statusLine(self):
-        print(f"Stage: {self.telemetryStage}, Velocity: {self.velocityMultiplier:.4f}, Tick: {self.epTick:6d} ", end='\r')
-
+        print(f"Stage: {self.telemetryStage}, Velocity: {
+              self.velocityMultiplier:.4f}, Tick: {self.epTick:6d} ", end='\r')
 
     def handleBtns(self):
         if not self.controller.btnState()[0]:
@@ -60,7 +61,7 @@ class ControllerTeleop:
 
         elif self.controller.btnState()[2]:
             self.velocityMultiplier -= self.velocityChangePerTick
-        
+
         elif self.controller.btnState()[3]:
             if not self.endEpFlag:
                 self.endEpFlag = True
@@ -71,10 +72,9 @@ class ControllerTeleop:
                 if self.recording_running:
                     self.cameraManager.stop_recording()
                     self.recording_running = False
-                else :
+                else:
                     self.cameraManager.start_recording()
                     self.recording_running = True
-
 
     def handleTelemetry(self):
         telemetry = {
@@ -83,15 +83,15 @@ class ControllerTeleop:
             'robot_eef_pose_vel': self.rtde_r.getActualTCPSpeed(),
             'robot_joint': self.rtde_r.getActualQ(),
             'robot_joint_vel': self.rtde_r.getActualQd(),
-            'stage': np.array([self.telemetryStage]), 
+            'stage': np.array([self.telemetryStage]),
             'timestamp': np.array([time.time()])
-       }
+        }
 
-        self.zarrWriter.append_data(telemetry)
-
+        if self.recording_running:
+            self.zarrWriter.append_data(telemetry)
 
     def loop(self, target_time=.05):
-        
+
         while True:
             dt = time.time()
 
@@ -116,14 +116,15 @@ class ControllerTeleop:
             self.epTick += 1
 
 
-
 if __name__ == '__main__':
     ROBOT_IP = '192.168.86.5'
     # ROBOT_IP = 'localhost'
     t = ControllerTeleop(ROBOT_IP)
 
-    t.cameraManager.add_camera("rtsp://root:admin@192.168.86.37/axis-media/media.amp")
-    t.cameraManager.add_camera("rtsp://root:admin@192.168.86.39/axis-media/media.amp")
+    t.cameraManager.add_camera(
+        "rtsp://root:admin@192.168.86.37/axis-media/media.amp")
+    t.cameraManager.add_camera(
+        "rtsp://root:admin@192.168.86.39/axis-media/media.amp")
 
     try:
         t.loop()
